@@ -1,6 +1,6 @@
 # Check usage of .png files in Drawable folders, selector .xml and layout .xml files
 # Author: Daniel ZHAO
-# Last Update: Aug 7, 2013
+# Last Update: Aug 8, 2013
 # Accepts two command, first a target directory for output file, second specify (true or false) whether you want delete unused files :)
 # command line prompt example: [python scriptname.py ./ true]
 
@@ -20,7 +20,7 @@ drawable_dir = set() # ie /res/drawable-xhdpi/
 layoutset = set()
 selectorset = set()
 
-def scanFile( targetset, srclist, scanitem ):
+def scan_file( targetset, srclist, scanitem ):
 	EXIST = False
 	usedset = set()
 
@@ -28,7 +28,7 @@ def scanFile( targetset, srclist, scanitem ):
 		for filename in targetset:
 			for key, value in srclist.items():
 				if value == False:
-					EXIST = readLayout( key[1], filename )
+					EXIST = read_layout( key[1], filename )
 					if EXIST == True:
 						usedset.add( filename )
 						break
@@ -37,7 +37,7 @@ def scanFile( targetset, srclist, scanitem ):
 		for filename in targetset:
 			for key, value in srclist.items():
 				if value == False:
-					EXIST = readSelector( key[1], filename )
+					EXIST = read_selector( key[1], filename )
 					if EXIST == True:
 						usedset.add( filename )
 						break
@@ -46,7 +46,7 @@ def scanFile( targetset, srclist, scanitem ):
 		for filename in targetset:
 			for key, value in srclist.items():
 				if value == False:
-					EXIST = readDrawable( key[1], filename )
+					EXIST = read_drawable( key[1], filename )
 					if EXIST == True:
 						usedset.add( filename )
 						break
@@ -54,13 +54,13 @@ def scanFile( targetset, srclist, scanitem ):
 	targetset.difference_update( usedset )
 
 
-def updateDict( targetset, srcdict ):
+def update_dict( targetset, srcdict ):
 	for key, value in srcdict.items():
 		if key[0] in targetset:
 			srcdict[ key ] = True
 
 
-def startProcess( rootdir ):
+def start_process( rootdir ):
 	filedir = rootdir + '/'
 
 	# Get directory list within the root directory
@@ -74,12 +74,10 @@ def startProcess( rootdir ):
 
 			if ( root.find('src') != -1 or fname.find('styles') != -1 or fname.find('Manifest') != -1 ):
 				srcdict[ ( fname, os.path.join(root, fname) ) ] = False
-				# drawablecheckdict[ ( fname, os.path.join(root, fname) ) ] = False
 
 			if ( root.find('layout') != -1 ):
 				layoutdict[ ( fname, os.path.join(root, fname) ) ] = False
 				layoutset.add( fname )
-				# drawablecheckdict[ ( fname, os.path.join(root, fname) ) ] = False
 
 			if ( root.find('drawable') != -1 ):
 				if ( root.find('drawable-') != -1 ):
@@ -94,7 +92,6 @@ def startProcess( rootdir ):
 						f.close()
 						selectordict[ ( fname, os.path.join(root, fname) ) ] = False
 						selectorset.add( fname )
-					# drawablecheckdict[ ( fname, os.path.join(root, fname) ) ] = False
 
 			if ( root.find('/res') != -1 and root.find('drawable-') == -1 ):
 				key = ( fname, os.path.join(root, fname) )
@@ -102,7 +99,7 @@ def startProcess( rootdir ):
 					drawablecheckdict[ ( fname, os.path.join(root, fname) ) ] = False
 
 
-def readDrawable(filename, pname):
+def read_drawable(filename, pname):
 	f = open(filename, 'r')
 	fcontent = f.read()
 	regexMatching = re.findall(pname.partition('.')[0], fcontent)
@@ -112,7 +109,7 @@ def readDrawable(filename, pname):
 	return False
 
 
-def readSelector(filename, pname):
+def read_selector(filename, pname):
 	d_selector = 'drawable/' + pname.partition('.')[0]
 	r_selector = 'R.drawable.' + pname.partition('.')[0]
 
@@ -126,7 +123,7 @@ def readSelector(filename, pname):
 	return False
 
 
-def readLayout( filename, lname):
+def read_layout( filename, lname):
 	r_layout = 'R.layout.'+ lname.partition('.')[0]
 	r_include = '@layout/'+ lname.partition('.')[0]
 
@@ -140,7 +137,7 @@ def readLayout( filename, lname):
 	return False
 
 
-def fileDelete(f, srcdict):
+def file_delete(f, srcdict):
 	for key, value in srcdict.items():
 		if value == True:
 			os.remove( key[1] )
@@ -153,33 +150,33 @@ def fileDelete(f, srcdict):
 
 def main(argv):
 
-	rootdir = 'negotiator_dev_repo'
+	rootdir = '../your_directory_name' # change to your directory name, without the / at the end
 	# for current working directory, use os.getcwd()
 
-	# python bouncer.py ./ true
+	# python test.py ./ true
 	if ( len(argv) == 3 ): 
 		outputdir = argv[1]
-		shouldDelete = argv[2]
+		_delete = argv[2]
 	
-	# python bouncer.py false
+	# python test.py false
 	if ( len(argv) == 2 ) and ( argv[1] == 'true' or argv[1] == 'false' ):
 		outputdir = os.getcwd()
-		shouldDelete = argv[1]
+		_delete = argv[1]
 	
-	# python bouncer.py ./
+	# python test.py ./
 	if ( len(argv) == 1 ):
 		outputdir = os.getcwd()
-		shouldDelete = 'false'
+		_delete = 'false'
 
 	if (len(argv) == 2 and argv[1] != 'true' and argv[1] != 'false' ):
 		outputdir = argv[1]
-		shouldDelete = 'false'
+		_delete = 'false'
 
-	outputfile = os.path.join( outputdir, 'bouncer_results.txt' )
+	outputfile = os.path.join( outputdir, 'test_results.txt' )
 	f = open(outputfile, 'w')
 
 	# Get a directory list
-	startProcess(rootdir)
+	start_process(rootdir)
 
 	print '========== Layout =========='
 	f.write('========== Layout ==========\n')
@@ -187,9 +184,9 @@ def main(argv):
 	print 'Total layout files: ' + str(len(layoutset))
 	f.write( 'Total layout files: ' + str(len(layoutset)) + '\n')
 
-	scanFile( layoutset, srcdict, 'layout' )
-	scanFile( layoutset, layoutdict, 'layout' )
-	updateDict( layoutset, layoutdict )
+	scan_file( layoutset, srcdict, 'layout' )
+	scan_file( layoutset, layoutdict, 'layout' )
+	update_dict( layoutset, layoutdict )
 
 	print 'Total not used layout files: ' + str(len(layoutset) )
 	f.write('Total not used layout files: ' + str(len(layoutset) ) + '\n' )
@@ -209,10 +206,10 @@ def main(argv):
 	print 'Total selectors: ' + str(len(selectorset))
 	f.write( 'Total selectors: ' + str(len(selectorset)) + '\n')
 
-	scanFile( selectorset, srcdict, 'selector' )
-	scanFile( selectorset, layoutdict, 'selector' )
-	scanFile( selectorset, selectordict, 'selector' )
-	updateDict( selectorset, selectordict )
+	scan_file( selectorset, srcdict, 'selector' )
+	scan_file( selectorset, layoutdict, 'selector' )
+	scan_file( selectorset, selectordict, 'selector' )
+	update_dict( selectorset, selectordict )
 
 	print 'Total not used selectors: ' + str(len(selectorset) )
 	f.write('Total not used selectors: ' + str(len(selectorset) ) + '\n' )
@@ -236,11 +233,11 @@ def main(argv):
 	useddrawable = set()
 	useddrawable.update( drawableset )
 
-	scanFile( drawableset, srcdict, 'drawable' )
-	scanFile( drawableset, layoutdict, 'drawable' )
-	scanFile( drawableset, selectordict, 'drawable' )
-	scanFile( drawableset, drawablecheckdict, 'drawable' )
-	updateDict( drawableset, drawabledict )
+	scan_file( drawableset, srcdict, 'drawable' )
+	scan_file( drawableset, layoutdict, 'drawable' )
+	scan_file( drawableset, selectordict, 'drawable' )
+	scan_file( drawableset, drawablecheckdict, 'drawable' )
+	update_dict( drawableset, drawabledict )
 
 	useddrawable.difference_update( drawableset )
 
@@ -275,18 +272,18 @@ def main(argv):
 		f.write('( Total '+ str(len(missingdrawable)) +' ) \n')
 
 
-	if ( shouldDelete == 'true'):
+	if ( _delete == 'true'):
 		print '\n=========== Removing Layouts =========='
 		f.write('\n\n=========== Removing Layouts ==========\n')
-		fileDelete(f, layoutdict)
+		file_delete(f, layoutdict)
 
 		print '\n=========== Removing Selectors =========='
 		f.write('\n\n=========== Removing Selectors ==========\n')
-		fileDelete(f, selectordict)
+		file_delete(f, selectordict)
 
 		print '\n=========== Removing Drawables =========='
 		f.write('\n\n=========== Removing Drawables ==========\n')
-		fileDelete(f, drawabledict)
+		file_delete(f, drawabledict)
 
 	f.close()
 
